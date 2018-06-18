@@ -42,95 +42,95 @@ ghcCollectors = [
             "ghc_allocated_bytes_total"
             "Total number of bytes allocated."
             CounterType
-            bytesAllocated
+            allocated_bytes
     ,   statsCollector
             "ghc_num_gcs"
             "The number of garbage collections performed."
             CounterType
-            numGcs
+            gcs
     ,   statsCollector
             "ghc_max_used_bytes"
             "The maximum number of live bytes seen so far."
             GaugeType
-            maxBytesUsed
+            max_live_bytes
     ,   statsCollector
             "ghc_cumulative_used_bytes_total"
             "The cumulative total bytes used."
             CounterType
-            cumulativeBytesUsed
+            cumulative_live_bytes
     ,   statsCollector
             "ghc_copied_bytes_total"
             "The number of bytes copied during garbage collection."
             CounterType
-            bytesCopied
+            copied_bytes
     ,   statsCollector
             "ghc_current_used_bytes"
             "The number of current live bytes."
             GaugeType
-            currentBytesUsed
+            (gcdetails_live_bytes . gc)
     ,   statsCollector
             "ghc_current_slop_bytes"
             "The current number of bytes lost to slop."
             GaugeType
-            currentBytesSlop
+            (gcdetails_slop_bytes . gc)
     ,   statsCollector
             "ghc_max_slop_bytes"
             "The maximum number of bytes lost to slop so far."
             GaugeType
-            maxBytesSlop
+            max_slop_bytes
     ,   statsCollector
             "ghc_peak_allocated_megabytes" -- XXX: export as bytes?
             "The maximum number of megabytes allocated."
             GaugeType
-            peakMegabytesAllocated
+            max_mem_in_use_bytes
     ,   statsCollector
             "ghc_mutator_cpu_seconds_total"
             "The CPU time spent running mutator threads."
             CounterType
-            mutatorCpuSeconds
+            mutator_cpu_ns
     ,   statsCollector
             "ghc_mutator_wall_seconds_total"
             "The wall clock time spent running mutator threads."
             CounterType
-            mutatorCpuSeconds
+            mutator_elapsed_ns
     ,   statsCollector
             "ghc_gc_cpu_seconds_total"
             "The CPU time spent running GC."
             CounterType
-            gcCpuSeconds
+            gc_cpu_ns
     ,   statsCollector
             "ghc_gc_wall_seconds_total"
             "The wall clock time spent running GC."
             CounterType
-            gcWallSeconds
+            gc_elapsed_ns
     ,   statsCollector
             "ghc_cpu_seconds_total"
             "Total CPU time elapsed since program start."
             CounterType
-            cpuSeconds
+            cpu_ns
     ,   statsCollector
             "ghc_wall_seconds_total"
             "Total wall clock time elapsed since start."
             CounterType
-            wallSeconds
+            elapsed_ns
     ,   statsCollector
             "ghc_parallel_copied_bytes_total"
             "Number of bytes copied during GC, minus space held by mutable lists held by the capabilities."
             CounterType
-            parTotBytesCopied
+            par_copied_bytes
     ,   statsCollector
             "ghc_parallel_max_copied_bytes_total"
             "Sum of number of bytes copied each GC by the most active GC thread each GC."
             CounterType
-            parMaxBytesCopied
+            cumulative_par_max_copied_bytes
     ]
 
 statsCollector :: Show a
-               => Text -> Text -> SampleType -> (GCStats -> a) -> IO [SampleGroup]
+               => Text -> Text -> SampleType -> (RTSStats -> a) -> IO [SampleGroup]
 statsCollector name help sampleType stat = do
-    statsEnabled <- getGCStatsEnabled
+    statsEnabled <- getRTSStatsEnabled
     if statsEnabled
-        then showCollector name help sampleType (stat <$> getGCStats)
+        then showCollector name help sampleType (stat <$> getRTSStats)
         else return []
 
 showCollector :: Show a => Text -> Text -> SampleType -> IO a -> IO [SampleGroup]
